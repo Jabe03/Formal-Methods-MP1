@@ -103,13 +103,21 @@ pred getMessage [m: Message] {
 -- moveMessage
 pred moveMessage [m: Message, mb: Mailbox] {
   --pre conditions
-
+    // m in (mb.)
+    let src_mailbox = messages.m | {
+    mb != Mail.trash
+    some src_mailbox
+    src_mailbox != mb
+    // not (m in Mail.trash.messages)
   --post conditions
-
+    mb.messages' = mb.messages + m
+    src_mailbox.messages' = src_mailbox.messages - m 
   --frame conditions
+    noMessageChange[Mailbox - (mb + src_mailbox)]
+    noStatusChange[Message]
+    noUserboxChange
 
-
-  Mail.op' = MM
+  Mail.op' = MM}
 }
 
 -- deleteMessage
