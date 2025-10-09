@@ -162,11 +162,15 @@ run {eventually (some m:Message | sendMessage[m])} for 10
 -- emptyTrash
 pred emptyTrash {
   --pre conditions
-
+    some Mail.trash.messages
   --post conditions
-
+    all m : Mail.trash.messages | m.status' = Purged
+    // no Mail.trash.messages'
+    after no Mail.trash.messages
   --frame conditions
-
+    noMessageChange[Mailbox - Mail.trash]
+    noStatusChange[Message - Mail.trash.messages]
+    noUserboxChange
 
 
   Mail.op' = ET
