@@ -108,8 +108,8 @@ pred getMessage [m: Message] {
 pred moveMessage [m: Message, mb: Mailbox] {
   --pre conditions
     // m in (mb.)
+    mb in (Mail.uboxes + Mail.sent + Mail.inbox + Mail.drafts)
     let src_mailbox = messages.m | {
-    mb != Mail.trash
     some src_mailbox
     src_mailbox != mb
     // not (m in Mail.trash.messages)
