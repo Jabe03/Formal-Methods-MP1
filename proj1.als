@@ -74,6 +74,12 @@ pred noUserboxChange {
 
 -- createMessage 
 pred createMessage [m: Message] {
+  
+  --pre conditions
+
+  --post conditions
+
+  --frame conditions
 
 
   Mail.op' = CM
@@ -81,6 +87,12 @@ pred createMessage [m: Message] {
 
 -- getMessage 
 pred getMessage [m: Message] {
+  --pre conditions
+
+  --post conditions
+
+  --frame conditions
+
 
 
   Mail.op' = GM
@@ -88,12 +100,24 @@ pred getMessage [m: Message] {
 
 -- moveMessage
 pred moveMessage [m: Message, mb: Mailbox] {
+  --pre conditions
+
+  --post conditions
+
+  --frame conditions
+
 
   Mail.op' = MM
 }
 
 -- deleteMessage
 pred deleteMessage [m: Message] {
+  --pre conditions
+
+  --post conditions
+
+  --frame conditions
+
 
 
   Mail.op' = DM
@@ -101,6 +125,12 @@ pred deleteMessage [m: Message] {
 
 -- sendMessage
 pred sendMessage [m: Message] {
+  --pre conditions
+
+  --post conditions
+
+  --frame conditions
+
 
 
   Mail.op' = SM
@@ -108,6 +138,12 @@ pred sendMessage [m: Message] {
 
 -- emptyTrash
 pred emptyTrash {
+  --pre conditions
+
+  --post conditions
+
+  --frame conditions
+
 
 
   Mail.op' = ET
@@ -119,6 +155,12 @@ pred emptyTrash {
 
 -- createMailbox
 pred createMailbox [mb: Mailbox] {
+  --pre conditions
+
+  --post conditions
+
+  --frame conditions
+ 
 
 
   Mail.op' = CMB
@@ -126,6 +168,12 @@ pred createMailbox [mb: Mailbox] {
 
 -- deleteMailbox
 pred deleteMailbox [mb: Mailbox] {
+  --pre conditions
+
+  --post conditions
+
+  --frame conditions
+
 
 
   Mail.op' = DMB
@@ -133,9 +181,13 @@ pred deleteMailbox [mb: Mailbox] {
 
 -- noOp
 pred noOp {
+  --pre conditions
 
+  --post conditions
 
-  Mail.op' = none 
+  --frame conditions
+
+    Mail.op' = none 
 }
 
 ---------------------------
