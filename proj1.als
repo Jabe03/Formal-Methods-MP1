@@ -123,12 +123,16 @@ pred moveMessage [m: Message, mb: Mailbox] {
 -- deleteMessage
 pred deleteMessage [m: Message] {
   --pre conditions
-
+    some messages.m
+    Mail.trash != messages.m 
   --post conditions
+    Mail.trash.messages' = Mail.trash.messages + m
+    messages.m.messages' = messages.m.messages - m 
 
   --frame conditions
-
-
+    noMessageChange[Mailbox - (Mail.trash + messages.m)]
+    noStatusChange[Message]
+    noUserboxChange
 
   Mail.op' = DM
 }
