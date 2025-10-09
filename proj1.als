@@ -76,8 +76,8 @@ pred noUserboxChange {
 pred createMessage [m: Message] {
   
   --pre conditions
-    m not in Mail.drafts.messages
-    m.status = Fresh
+  m not in Mailbox.messages
+  m.status = Fresh
   --post conditions
   Mail.drafts.messages' = Mail.drafts.messages + m
   --frame conditions
