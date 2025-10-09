@@ -199,21 +199,22 @@ pred noOp {
 
 pred Init {
   -- There are no active or purged messages anywhere
-
+	no m: Message | some m.status and m.status in (Purged + Active)
 
   -- The system mailboxes are all distinct
-
+	#(Mail.inbox + Mail.drafts + Mail.trash + Mail.sent) = 4
 
   -- All mailboxes anywhere are empty
-
+	all m : Mailbox | no m.messages 
 
   -- The set of user-created mailboxes is empty
-
+	no Mail.uboxes
 
   -- [Keep this tracking constraint intact]
   -- no operator generates the initial state
   Mail.op = none
 }
+
 
 ------------------------
 -- Transition predicate
