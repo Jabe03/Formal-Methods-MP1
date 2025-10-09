@@ -199,15 +199,22 @@ pred createMailbox [mb: Mailbox] {
 -- deleteMailbox
 pred deleteMailbox [mb: Mailbox] {
   --pre conditions
+    mb in (Mail.uboxes)
 
   --post conditions
-
+    all m : mb.messages | m.status' = Purged
+    Mail.uboxes' = Mail.uboxes - mb
+    mb.messages' = mb.messages - mb.messages
   --frame conditions
+    noMessageChange[Mailbox - mb]
+    noStatusChange[Message - mb.messages]
 
 
 
   Mail.op' = DMB
 }
+run {eventually some mb : Mailbox | eventually (createMailbox[mb] and eventually ((some m: Message| moveMessage[m, mb]) and eventually deleteMailbox[mb]))} for 10
+
 
 -- noOp
 pred noOp {
