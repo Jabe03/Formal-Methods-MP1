@@ -76,12 +76,14 @@ pred noUserboxChange {
 pred createMessage [m: Message] {
   
   --pre conditions
-
+    m not in Mail.drafts.messages
+    m.status = Fresh
   --post conditions
-
+  Mail.drafts.messages' = Mail.drafts.messages + m
   --frame conditions
-
-
+  noMessageChange[Mailbox - Mail.drafts]
+  noStatusChange[Message]
+  noUserboxChange
   Mail.op' = CM
 }
 
@@ -226,8 +228,8 @@ pred Trans {
   // or
   // (some mb: Mailbox | deleteMailbox [mb])
   // or
-  // (some m: Message | createMessage [m])
-  // or  
+  (some m: Message | createMessage [m])
+  or  
   // (some m: Message | getMessage [m])
   // or
   // (some m: Message | sendMessage [m])
@@ -255,7 +257,7 @@ fact System {
 }
 
 
-run {} for 10
+run {eventually (some m:Message | createMessage[m])} for 10
 
 ---------------------
 -- Sanity check runs
