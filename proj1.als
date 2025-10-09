@@ -90,11 +90,15 @@ pred createMessage [m: Message] {
 -- getMessage 
 pred getMessage [m: Message] {
   --pre conditions
-
+    m.status = External
+    no messages.m
   --post conditions
-
+    m.status' = Fresh
+    Mail.inbox.messages' = Mail.inbox.messages + m
   --frame conditions
-
+    noMessageChange[Mailbox - Mail.inbox]
+    noStatusChange[Message - m]
+    noUserboxChange
 
 
   Mail.op' = GM
