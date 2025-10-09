@@ -139,16 +139,21 @@ pred deleteMessage [m: Message] {
 
 -- sendMessage
 pred sendMessage [m: Message] {
+  let src_mailbox = messages.m |{
   --pre conditions
-
+    src_mailbox = Mail.drafts
   --post conditions
-
+    Mail.sent.messages' = Mail.sent.messages + m
+    Mail.drafts.messages' = Mail.drafts.messages - m
   --frame conditions
-
-
+    noMessageChange[Mailbox - (Mail.sent + Mail.drafts)]
+    noStatusChange[Message]
+    noUserboxChange
 
   Mail.op' = SM
+  }
 }
+run {eventually (some m:Message | sendMessage[m])} for 10
 
 -- emptyTrash
 pred emptyTrash {
