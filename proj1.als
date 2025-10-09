@@ -184,10 +184,13 @@ pred emptyTrash {
 pred createMailbox [mb: Mailbox] {
   --pre conditions
 
+    mb not in (Mail.uboxes + Mail.trash + Mail.sent + Mail.inbox + Mail.drafts)
   --post conditions
-
+    Mail.uboxes' = Mail.uboxes + mb
   --frame conditions
- 
+    noMessageChange[Mailbox]
+    noStatusChange[Message]
+
 
 
   Mail.op' = CMB
