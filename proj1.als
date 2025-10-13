@@ -299,8 +299,8 @@ run {eventually (some m:Message | createMessage[m])} for 10
 ---------------------
 
 pred T1 {
-  -- Eventually some message becomes active
-
+  -- Eventually some message becomes active TODO: IMPLEMENT STATUSES
+    eventually (some m:Message | m.status = Active)
 }
 run T1 for 1 but 8 Object
 
@@ -313,7 +313,7 @@ run T2 for 1 but 8 Object
 pred T3 {
   -- The trash mailbox eventually contains messages and
   -- becomes empty some time later
-
+    eventually (some Mail.trash.messages and (eventually no Mail.trash.messages))
 }
 run T3 for 1 but 8 Object
 
@@ -325,7 +325,7 @@ run T4 for 1 but 8 Object
 
 pred T5 {
   -- Eventually there is a user mailbox with messages in it
-
+    eventually (some mb : (Mail.uboxes) | some mb.messages)
 }
 run T5 for 1 but 8 Object 
 
@@ -337,7 +337,7 @@ run T6 for 1 but 8 Object
 
 pred T7 {
   -- Eventually some user mailbox gets deleted
-
+    eventually (some mb : (Mail.uboxes) | deleteMailbox[mb])
 }
 run T7 for 1 but 8 Object
 
@@ -351,7 +351,7 @@ run T8 for 1 but 8 Object
 
 pred T9 {
   -- The trash mail box is emptied of its messages eventually
-
+    eventually emptyTrash
 }
 run T9 for 1 but 8 Object
 
