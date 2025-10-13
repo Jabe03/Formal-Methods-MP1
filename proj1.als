@@ -259,22 +259,22 @@ pred Init {
 
 /** Do not modify! **/
 pred Trans {
-  // (some mb: Mailbox | createMailbox [mb])
-  // or
-  // (some mb: Mailbox | deleteMailbox [mb])
-  // or
+  (some mb: Mailbox | createMailbox [mb])
+  or
+  (some mb: Mailbox | deleteMailbox [mb])
+  or
   (some m: Message | createMessage [m])
   or  
-  // (some m: Message | getMessage [m])
-  // or
-  // (some m: Message | sendMessage [m])
-  // or   
-  // (some m: Message | deleteMessage [m])
-  // or 
-  // (some m: Message | some mb: Mailbox | moveMessage [m, mb])
-  // or 
-  // emptyTrash
-  // or 
+  (some m: Message | getMessage [m])
+  or
+  (some m: Message | sendMessage [m])
+  or   
+  (some m: Message | deleteMessage [m])
+  or 
+  (some m: Message | some mb: Mailbox | moveMessage [m, mb])
+  or 
+  emptyTrash
+  or 
   noOp
 }
 
