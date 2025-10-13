@@ -478,9 +478,9 @@ check Extra16 for 5 but 11 Object
 -------------------------------
 
 -- It is possible for messages to stay in the inbox indefinitely
--- Negated into: 
+-- Negated into: There is no message that stays in the inbox indefinitely
 assert I1 {
-
+   no m : Message | eventually (always (m in Mail.inbox.messages))
 }
 check I1 for 5 but 11 Object
 
@@ -492,9 +492,13 @@ assert I2 {
 check I2 for 5 but 11 Object
 
 -- A message that leaves the inbox may later reappear there.
--- Negated into:
+-- Negated into: Once a message leaves the inbox, it will never appear there again
 assert I3 {
-
+    no m: Message | eventually {
+     m in Mail.inbox.messages
+     after (not m in Mail.inbox.messages)
+     after (eventually m in Mail.inbox.messages)
+    }
 }
 check I3 for 5 but 11 Object
 
@@ -506,9 +510,9 @@ assert I4 {
 check I4 for 5 but 11 Object
 
 -- Some external messages may never be received
--- Negated into:
+-- Negated into: All external messages are eventually received
 assert I5 {
-
+  all m : {x : Message | x.status = External} | eventually getMessage[m]
 }
 check I5 for 5 but 11 Object
 
@@ -521,9 +525,10 @@ check I6 for 5 but 11 Object
 
 -- It is possible to reach a point 
 -- where none of the system mailboxes change content anymore
--- Negated into: 
+-- Negated into: The system mailboxes will always eventually change in their content
 assert I7 {
-
+  always all mb : (Mail.trash + Mail.sent + Mail.drafts + Mail.inbox) |
+        eventually (mb.messages != mb.messages')
 }
 check I7 for 5 but 11 Object
 
