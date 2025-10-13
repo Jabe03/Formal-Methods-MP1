@@ -259,22 +259,22 @@ pred Init {
 
 /** Do not modify! **/
 pred Trans {
-  // (some mb: Mailbox | createMailbox [mb])
-  // or
-  // (some mb: Mailbox | deleteMailbox [mb])
-  // or
+  (some mb: Mailbox | createMailbox [mb])
+  or
+  (some mb: Mailbox | deleteMailbox [mb])
+  or
   (some m: Message | createMessage [m])
   or  
-  // (some m: Message | getMessage [m])
-  // or
-  // (some m: Message | sendMessage [m])
-  // or   
-  // (some m: Message | deleteMessage [m])
-  // or 
-  // (some m: Message | some mb: Mailbox | moveMessage [m, mb])
-  // or 
-  // emptyTrash
-  // or 
+  (some m: Message | getMessage [m])
+  or
+  (some m: Message | sendMessage [m])
+  or   
+  (some m: Message | deleteMessage [m])
+  or 
+  (some m: Message | some mb: Mailbox | moveMessage [m, mb])
+  or 
+  emptyTrash
+  or 
   noOp
 }
 
@@ -299,8 +299,8 @@ run {eventually (some m:Message | createMessage[m])} for 10
 ---------------------
 
 pred T1 {
-  -- Eventually some message becomes active
-
+  -- Eventually some message becomes active TODO: IMPLEMENT STATUSES
+    eventually (some m:Message | m.status = Active)
 }
 run T1 for 1 but 8 Object
 
@@ -313,7 +313,7 @@ run T2 for 1 but 8 Object
 pred T3 {
   -- The trash mailbox eventually contains messages and
   -- becomes empty some time later
-
+    eventually (some Mail.trash.messages and (eventually no Mail.trash.messages))
 }
 run T3 for 1 but 8 Object
 
@@ -325,7 +325,7 @@ run T4 for 1 but 8 Object
 
 pred T5 {
   -- Eventually there is a user mailbox with messages in it
-
+    eventually (some mb : (Mail.uboxes) | some mb.messages)
 }
 run T5 for 1 but 8 Object 
 
@@ -337,7 +337,7 @@ run T6 for 1 but 8 Object
 
 pred T7 {
   -- Eventually some user mailbox gets deleted
-
+    eventually (some mb : (Mail.uboxes) | deleteMailbox[mb])
 }
 run T7 for 1 but 8 Object
 
@@ -351,7 +351,7 @@ run T8 for 1 but 8 Object
 
 pred T9 {
   -- The trash mail box is emptied of its messages eventually
-
+    eventually emptyTrash
 }
 run T9 for 1 but 8 Object
 
@@ -478,9 +478,9 @@ check Extra16 for 5 but 11 Object
 -------------------------------
 
 -- It is possible for messages to stay in the inbox indefinitely
--- Negated into: 
+-- Negated into: There is no message that stays in the inbox indefinitely
 assert I1 {
-
+   no m : Message | eventually (always (m in Mail.inbox.messages))
 }
 check I1 for 5 but 11 Object
 
@@ -492,9 +492,13 @@ assert I2 {
 check I2 for 5 but 11 Object
 
 -- A message that leaves the inbox may later reappear there.
--- Negated into:
+-- Negated into: Once a message leaves the inbox, it will never appear there again
 assert I3 {
-
+    no m: Message | eventually {
+     m in Mail.inbox.messages
+     after (not m in Mail.inbox.messages)
+     after (eventually m in Mail.inbox.messages)
+    }
 }
 check I3 for 5 but 11 Object
 
@@ -506,9 +510,9 @@ assert I4 {
 check I4 for 5 but 11 Object
 
 -- Some external messages may never be received
--- Negated into:
+-- Negated into: All external messages are eventually received
 assert I5 {
-
+  all m : {x : Message | x.status = External} | eventually getMessage[m]
 }
 check I5 for 5 but 11 Object
 
@@ -521,9 +525,10 @@ check I6 for 5 but 11 Object
 
 -- It is possible to reach a point 
 -- where none of the system mailboxes change content anymore
--- Negated into: 
+-- Negated into: The system mailboxes will always eventually change in their content
 assert I7 {
-
+  always all mb : (Mail.trash + Mail.sent + Mail.drafts + Mail.inbox) |
+        eventually (mb.messages != mb.messages')
 }
 check I7 for 5 but 11 Object
 
