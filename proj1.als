@@ -525,7 +525,8 @@ check V14 for 5 but 7 Object
 
 assert Extra15 {
 -- Every message in a user-created mailbox ultimately comes from a system mailbox.
-
+always (all m : {x:Message | (some messages.x) and messages.x in Mail.uboxes} |
+        once m in sboxes.messages)
 }
 check Extra15 for 5 but 11 Object
 
