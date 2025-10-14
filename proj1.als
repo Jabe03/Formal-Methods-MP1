@@ -486,6 +486,12 @@ check V10 for 5 but 11 Object
 
 assert V11 {
 -- No messages in the system can ever (re)acquire External status
+  always all m : {x : Message | x.status = External} | 
+    (always m.status = External) or  
+    eventually {
+      not m.status = External 
+      after always not m.status = External
+    }
 
 }
 check V11 for 5 but 11 Object
@@ -500,7 +506,11 @@ check V12 for 5 but 11 Object
 assert V13 {
 -- To purge an active message one must first delete the message 
 -- or delete the mailbox that contains it.
-
+  always (all m : Message | (m.status = Active and after (m.status = Purged)) implies (
+    once deleteMessage[m] and emptyTrash
+    or
+    deleteMailbox[messages.m]
+  ))
 }
 check V13 for 5 but 11 Object
 
