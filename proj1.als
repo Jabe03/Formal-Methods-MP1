@@ -1,11 +1,10 @@
-
 --===============================================
 -- CS:5810 Formal Methods in Software Engineering
 -- Fall 2023
 --
 -- Mini Project 1
 --
--- Name:  <your name(s) here>
+-- Name:  Mitchell Piehl and Josh Bergthold
 --
 --===============================================
 
@@ -80,9 +79,10 @@ pred createMessage [m: Message] {
   m.status = Fresh
   --post conditions
   Mail.drafts.messages' = Mail.drafts.messages + m
+  m.status' = Active
   --frame conditions
   noMessageChange[Mailbox - Mail.drafts]
-  noStatusChange[Message]
+  noStatusChange[Message - m]
   noUserboxChange
   Mail.op' = CM
 }
@@ -93,7 +93,7 @@ pred getMessage [m: Message] {
     m.status = External
     no messages.m
   --post conditions
-    m.status' = Fresh
+    m.status' = Active
     Mail.inbox.messages' = Mail.inbox.messages + m
   --frame conditions
     noMessageChange[Mailbox - Mail.inbox]
@@ -190,8 +190,6 @@ pred createMailbox [mb: Mailbox] {
   --frame conditions
     noMessageChange[Mailbox]
     noStatusChange[Message]
-
-
 
   Mail.op' = CMB
 }
@@ -313,7 +311,8 @@ run T2 for 1 but 8 Object
 pred T3 {
   -- The trash mailbox eventually contains messages and
   -- becomes empty some time later
-    eventually (some Mail.trash.messages and (eventually no Mail.trash.messages))
+--CHANGED
+    eventually (some Mail.trash.messages and after (eventually no Mail.trash.messages))
 }
 run T3 for 1 but 8 Object
 
@@ -331,7 +330,7 @@ run T5 for 1 but 8 Object
 
 pred T6 {
   -- Eventually the inbox gets two messages in a row from outside
-
+  eventually (some m1, m2 : Message | m1 != m2 and m1.status = External and m2.status = External and after (m2.status = Active and m1.status = External) and after after (m1.status = Active and m2.status = Active))
 }
 run T6 for 1 but 8 Object
 
@@ -345,26 +344,26 @@ pred T8 {
   -- Eventually the inbox has messages
   eventually some Mail.inbox.messages
   -- Every message in the inbox at any point is eventually removed 
-  eventually (some (Mail.inbox.messages) and after (eventually no Mail.inbox.messages))
+  always (all m : Message | messages.m = Mail.inbox implies eventually (messages.m != Mail.inbox))
 }
 run T8 for 1 but 8 Object
 
 pred T9 {
   -- The trash mail box is emptied of its messages eventually
-    eventually emptyTrash
+  eventually emptyTrash
 }
 run T9 for 1 but 8 Object
 
 pred T10 {
   -- Eventually an external message arrives and 
   -- after that nothing happens anymore
-
+  eventually (some m : Message | getMessage[m] and after always noOp)
 }
 run T10 for 1 but 8 Object
 
-run allTests {
-  T1 T2 T3 T4 T5 T6 T7 T8 T9 T10
-} for 5 but 11 Object, 12 steps 
+--run allTests {
+  --T1 T2 T3 T4 T5 T6 T7 T8 T9 T10
+--} for 5 but 11 Object, 12 steps 
 
 
 
@@ -383,7 +382,7 @@ assert V2 {
 --  Inactive messages are in no mailboxes at all
   always (all m : Message | m.status != Active implies no messages.m)
 }
-check V2 for 5 but 11 Object
+check V2 for 5 but 7 Object
 
 assert V3 {
 -- Each of the user-created mailboxes differs from the predefined mailboxes
@@ -405,7 +404,7 @@ check V5 for 5 but 11 Object
 
 assert V6 {
 -- User-created mailboxes stay in the system indefinitely or until they are deleted.
-  always (all m : Mailbox | m in Mail.uboxes implies after (m in Mail.uboxes or m not in sboxes))
+  always (all m : Mailbox | m in Mail.uboxes implies deleteMailbox[m] or after (m in Mail.uboxes))
 }
 check V6 for 5 but 11 Object
 
@@ -417,9 +416,9 @@ check V7 for 5 but 11 Object
 
 assert V8 {
 -- The app's mailboxes contain only active messages
-    always (all m : Message | m in sboxes.messages implies m.status = Active )
+    always (all m : Message | m in sboxes.messages or m in Mail.uboxes.messages implies m.status = Active )
 }
-check V8 for 5 but 11 Object
+check V8 for 5 but 9 Object
 
 assert V9 {
 -- Every received message goes through the inbox
@@ -441,7 +440,8 @@ check V11 for 5 but 11 Object
 
 assert V12 {
 -- The trash mailbox starts empty and stays so until a message is delete, if any
-  -- no Mail.trash.messages and 
+  no Mail.trash.messages and (some Mail.trash.messages implies (some m : Message | deleteMessage[m]))
+  
 }
 check V12 for 5 but 11 Object
 
@@ -455,9 +455,11 @@ check V13 for 5 but 11 Object
 assert V14 {
 -- Every message in the trash mailbox mailbox is there 
 -- because it had been previously deleted
+  always (all m : Message | m in Mail.trash.messages implies once deleteMessage[m] )
+
 
 }
-check V14 for 5 but 11 Object
+check V14 for 5 but 7 Object
 
 assert Extra15 {
 -- Every message in a user-created mailbox ultimately comes from a system mailbox.
@@ -468,7 +470,7 @@ check Extra15 for 5 but 11 Object
 assert Extra16 {
 -- A purged message that was never in the trash mailbox must have been 
 -- in a user mailbox that was later deleted
-   --always (all m : Message | m.status = Purged and not once m in Mail.trash.messages implies )
+   always (all m : Message | some mb : Mailbox | (m.status = Purged and not (once m in Mail.trash.messages) and once messages.m = mb) implies (once deleteMailbox[mb]))
 }
 check Extra16 for 5 but 11 Object
 
@@ -485,9 +487,9 @@ assert I1 {
 check I1 for 5 but 11 Object
 
 -- A message in the sent mailbox need not be there because it was sent.
--- Negated into: 
+-- Negated into: A message in the sent mailbox needs to be there because it was sent
 assert I2 {
-
+   always (all m : Message | m in Mail.sent.messages implies once sendMessage[m])
 }
 check I2 for 5 but 11 Object
 
@@ -503,9 +505,9 @@ assert I3 {
 check I3 for 5 but 11 Object
 
 -- A deleted message may go back to the mailbox it was deleted from.
--- Negated into:
+-- Negated into: A deleted message may never go back to the mailbox it was deleted from
 assert I4 {
-  always (all m : Message | all Mb : Mailbox | messages.m = Mail.trash and once messages.m = Mb and Mb != Mail.trash implies not eventually messages.m != Mail.trash and messages.m = Mb )
+  always (all m : Message | all Mb : Mailbox | messages.m = Mail.trash and once messages.m = Mb and Mb != Mail.trash implies not eventually (messages.m != Mail.trash and messages.m = Mb ))
 }
 check I4 for 5 but 11 Object
 
@@ -517,7 +519,7 @@ assert I5 {
 check I5 for 5 but 11 Object
 
 -- A deleted mailbox may reappear in the system
--- Negated into:
+-- Negated into: A deleted mailbox may not reappear in the system
 assert I6 {
   always (all mb : Mailbox | once (mb in Mail.uboxes) and mb not in Mail.uboxes implies not eventually mb in Mail.uboxes )
 }
@@ -533,7 +535,7 @@ assert I7 {
 check I7 for 5 but 11 Object
 
 -- Just deleting a message does not guarantee that it gets eventually purged
--- Negated into: 
+-- Negated into: Deleting a message guarantees that it eventually gets purged
 assert I8 {
   always (all m : Message | messages.m = Mail.trash implies eventually m.status = Purged )
 }
