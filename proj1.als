@@ -373,7 +373,9 @@ run T10 for 1 but 8 Object
 
 assert V1 {
 --  Every active message in the system is in one of the app's mailboxes 
-
+  always (all m : {x : Message | x.status = Active} | 
+          let sys_mailboxes = sboxes + Mail.uboxes |
+            some mb : sys_mailboxes | m in mb.messages)
 }
 check V1 for 5 but 11 Object
 
@@ -386,7 +388,7 @@ check V2 for 5 but 7 Object
 
 assert V3 {
 -- Each of the user-created mailboxes differs from the predefined mailboxes
-
+  always (no sboxes & Mail.uboxes)
 }
 check V3 for 5 but 11 Object
 
@@ -398,7 +400,7 @@ check V4 for 5 but 11 Object
 
 assert V5 {
 -- Every user-created mailbox starts empty.
-
+  always (all mb : Mailbox | createMailbox[mb] implies after no mb.messages)
 }
 check V5 for 5 but 11 Object
 
@@ -410,7 +412,7 @@ check V6 for 5 but 11 Object
 
 assert V7 {
 -- Messages are sent exclusively from the draft mailbox 
-
+  always (all m : Message | sendMessage[m] implies messages.m = Mail.drafts)
 }
 check V7 for 5 but 11 Object
 
@@ -422,7 +424,7 @@ check V8 for 5 but 9 Object
 
 assert V9 {
 -- Every received message goes through the inbox
-
+  always (all m : Message | getMessage[m] implies after messages.m = Mail.inbox)
 }
 check V9 for 5 but 11 Object
 
