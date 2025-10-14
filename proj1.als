@@ -75,14 +75,21 @@ pred noUserboxChange {
 pred createMessage [m: Message] {
   
   --pre conditions
+    -- the message cannot already be in a mailbox
   m not in Mailbox.messages
+    -- the message needs to be from the set of fresh messages
   m.status = Fresh
   --post conditions
+    -- the messages in drafts will all remain the same, but the new message will be added
   Mail.drafts.messages' = Mail.drafts.messages + m
+    -- the status of the new message will become active
   m.status' = Active
   --frame conditions
+    -- the messages in every mailbox will remain the same besides the draft mailbox
   noMessageChange[Mailbox - Mail.drafts]
+    -- the status of every message will remain the same except for the status of the new message
   noStatusChange[Message - m]
+    -- the userboxes will not change
   noUserboxChange
   Mail.op' = CM
 }
@@ -90,14 +97,21 @@ pred createMessage [m: Message] {
 -- getMessage 
 pred getMessage [m: Message] {
   --pre conditions
+      -- the new message must be external to the system
     m.status = External
+      -- the new message must not already be in a mailbox
     no messages.m
   --post conditions
+      -- when the new message is recieved, the status becomes active
     m.status' = Active
+      -- the messages in the inbox remain the same but the new message gets added
     Mail.inbox.messages' = Mail.inbox.messages + m
   --frame conditions
+      -- the messages in every mailbox will remain the same besides the inbox
     noMessageChange[Mailbox - Mail.inbox]
+      -- the status of every message will remain the same except for the status of the new message
     noStatusChange[Message - m]
+      -- the userboxes will not change
     noUserboxChange
 
 
@@ -108,17 +122,25 @@ pred getMessage [m: Message] {
 pred moveMessage [m: Message, mb: Mailbox] {
   --pre conditions
     // m in (mb.)
+      -- the new mailbox must be in the system
     mb in (Mail.uboxes + Mail.sent + Mail.inbox + Mail.drafts)
     let src_mailbox = messages.m | {
+      -- the message must already be in a mailbox
     some src_mailbox
+      -- the new mailbox must be different than the old mailbox
     src_mailbox != mb
     // not (m in Mail.trash.messages)
   --post conditions
+      -- the new mailbox gains the message being moved
     mb.messages' = mb.messages + m
+      -- the old mailbox loses the message being moved
     src_mailbox.messages' = src_mailbox.messages - m 
   --frame conditions
+      -- the messages in every mailbox will remain the same besides the old mailbox and the new mailbox
     noMessageChange[Mailbox - (mb + src_mailbox)]
+      -- the status of every message will remain the same
     noStatusChange[Message]
+      -- the userboxes will not change
     noUserboxChange
 
   Mail.op' = MM}
@@ -127,15 +149,21 @@ pred moveMessage [m: Message, mb: Mailbox] {
 -- deleteMessage
 pred deleteMessage [m: Message] {
   --pre conditions
+      -- the message must be in a mailbox
     some messages.m
+      -- the message cannot be in the trash already
     Mail.trash != messages.m 
   --post conditions
+      -- the trash mailbox gains the new message
     Mail.trash.messages' = Mail.trash.messages + m
+     -- the old mailbox loses the message
     messages.m.messages' = messages.m.messages - m 
-
   --frame conditions
+      -- the messages in every mailbox will remain the same besides the old mailbox and trash
     noMessageChange[Mailbox - (Mail.trash + messages.m)]
+      -- the status of every message will remain the same
     noStatusChange[Message]
+      -- the userboxes will not change
     noUserboxChange
 
   Mail.op' = DM
@@ -145,13 +173,19 @@ pred deleteMessage [m: Message] {
 pred sendMessage [m: Message] {
   let src_mailbox = messages.m |{
   --pre conditions
+      -- the message must be in drafts
     src_mailbox = Mail.drafts
   --post conditions
+      -- the sent mailbox gains the message being sent
     Mail.sent.messages' = Mail.sent.messages + m
+      -- the drafts mailbox loses the message being sent
     Mail.drafts.messages' = Mail.drafts.messages - m
   --frame conditions
+      -- the messages in every mailbox will remain the same besides the sent mailbox and drafts mailbox
     noMessageChange[Mailbox - (Mail.sent + Mail.drafts)]
+      -- the status of every message will remain the same
     noStatusChange[Message]
+      -- the userboxes will not change
     noUserboxChange
 
   Mail.op' = SM
@@ -162,14 +196,20 @@ run {eventually (some m:Message | sendMessage[m])} for 10
 -- emptyTrash
 pred emptyTrash {
   --pre conditions
+      -- the trash must have some messages
     some Mail.trash.messages
   --post conditions
+      -- the status of all messages in trash becomes purged
     all m : Mail.trash.messages | m.status' = Purged
     // no Mail.trash.messages'
+      -- after emptying the trash, there will be no messages in trash
     after no Mail.trash.messages
   --frame conditions
+     -- the messages in every mailbox will remain the same besides the trash mailbox
     noMessageChange[Mailbox - Mail.trash]
+      -- the status of every message will remain the same besides the messages in trash
     noStatusChange[Message - Mail.trash.messages]
+      -- the userboxes will not change
     noUserboxChange
 
 
@@ -183,12 +223,15 @@ pred emptyTrash {
 -- createMailbox
 pred createMailbox [mb: Mailbox] {
   --pre conditions
-
+      -- the new mailbox cannot already be in the system
     mb not in (Mail.uboxes + Mail.trash + Mail.sent + Mail.inbox + Mail.drafts)
   --post conditions
+      -- the new mailbox will be added to uboxes
     Mail.uboxes' = Mail.uboxes + mb
   --frame conditions
+      -- the messages in every mailbox will remain the same
     noMessageChange[Mailbox]
+      -- the status of every message will remain the same
     noStatusChange[Message]
 
   Mail.op' = CMB
@@ -197,14 +240,19 @@ pred createMailbox [mb: Mailbox] {
 -- deleteMailbox
 pred deleteMailbox [mb: Mailbox] {
   --pre conditions
+      -- the mailbox being deleted must be in uboxes
     mb in (Mail.uboxes)
-
   --post conditions
+      -- the status of every message in the deleted mailbox will be purged
     all m : mb.messages | m.status' = Purged
+      -- afterwards, the deleted mailbox will not the in uboxes
     Mail.uboxes' = Mail.uboxes - mb
+      -- afterwards, there will be no messages in the mailbox that is being deleted
     mb.messages' = mb.messages - mb.messages
   --frame conditions
+      -- the messages in every mailbox will remain the same besides the mailbox being deleted
     noMessageChange[Mailbox - mb]
+      -- the status of every message will remain the same besides the messages in the deleted mailbox
     noStatusChange[Message - mb.messages]
 
 
@@ -221,9 +269,11 @@ pred noOp {
   --post conditions
 
   --frame conditions
-
+    -- the status of every message will remain the same
   noStatusChange[Message]
+    -- the messages in every mailbox will remain the same
   noMessageChange[Mailbox]
+    -- the userboxes will not change
   noUserboxChange
   Mail.op' = none 
 }
@@ -330,7 +380,7 @@ run T5 for 1 but 8 Object
 
 pred T6 {
   -- Eventually the inbox gets two messages in a row from outside
-  eventually (some m1, m2 : Message | m1 != m2 and m1.status = External and m2.status = External and after (m2.status = Active and m1.status = External) and after after (m1.status = Active and m2.status = Active))
+  some m1, m2 : Message | m1 != m2 and eventually (getMessage[m1] and after getMessage[m2])
 }
 run T6 for 1 but 8 Object
 
