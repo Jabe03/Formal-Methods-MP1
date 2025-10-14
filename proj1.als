@@ -380,7 +380,7 @@ run T5 for 1 but 8 Object
 
 pred T6 {
   -- Eventually the inbox gets two messages in a row from outside
-  eventually (some m1, m2 : Message | m1 != m2 and m1.status = External and m2.status = External and after (m2.status = Active and m1.status = External) and after after (m1.status = Active and m2.status = Active))
+  some m1, m2 : Message | m1 != m2 and eventually (getMessage[m1] and after getMessage[m2])
 }
 run T6 for 1 but 8 Object
 
