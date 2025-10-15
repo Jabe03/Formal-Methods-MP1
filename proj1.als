@@ -354,7 +354,7 @@ run T1 for 1 but 8 Object
 
 pred T2 {
   -- The inbox contains more than one message at some point
-  eventually #(Mail.inbox.messages) = 2
+  eventually #(Mail.inbox.messages) > 1
 }
 run T2 for 1 but 8 Object
 
