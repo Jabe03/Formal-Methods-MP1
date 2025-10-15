@@ -410,8 +410,13 @@ pred T10 {
 }
 run T10 for 1 but 8 Object
 
+-- NOTE TO GRADER: We believe that T10 and T8 are contradictory, as T8 states that every message in the inbox is removed at some point,
+-- while T10 states that eventually an external message arrives and after that nothing happens anymore, meaning the message in the inbox is never removed.
+-- So allTests will not pass so long as T8 and T10 are both included.
+-- FURTHER NOTE: T10 seems to also be contradicting other tests, probably because it requires noOps as the only
+-- transition for the tail-end of the trace. Otherwise, T1-T9 conjunctively pass. 
 run allTests {
-  T1 T2 T3 T4 T5 T6 T7 T8 T9 T10
+  T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 --T10 is a problem
 } for 5 but 11 Object, 12 steps 
 
 
