@@ -490,13 +490,7 @@ check V10 for 5 but 11 Object
 
 assert V11 {
 -- No messages in the system can ever (re)acquire External status
-  always all m : {x : Message | x.status = External} | 
-    (always m.status = External) or  
-    eventually {
-      not m.status = External 
-      after always not m.status = External
-    }
-
+  always (all m : Message | once m.status = External and m.status != External implies not eventually m.status = External)
 }
 check V11 for 5 but 11 Object
 
